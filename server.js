@@ -1,8 +1,20 @@
 const path = require("path");
 
 const express = require("express");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+
+const { logger } = require("./middleware/logger");
+const { errorHandler } = require("./middleware/errorHandler");
+const { corsOptions } = require("./config/corsOptions");
 
 const app = express();
+
+app.use(logger);
+
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(cookieParser());
 
 app.use("/", express.static(path.join(__dirname, "public")));
 app.use("/", require("./routes/root"));
@@ -12,6 +24,7 @@ app.all("*", (req, res) => {
 	else if (req.accepts("json")) res.status(404).json({ error: "Not found" });
 	else res.status(404).type("txt").send("404 Not found");
 });
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3500;
 app.listen(PORT, () => {
